@@ -122,7 +122,8 @@ if [ "$ASSET_NAME" != "" ] && echo "$ASSET_NAME" | grep -q "tar.zst$"; then
       exit 1
     fi
   else
-    echo "Neither unzstd nor zstd found for extracting .tar.zst archives. Please install zstd." >&2
+    echo "Neither unzstd nor zstd found for extracting .tar.zst archives." >&2
+    echo "Please install zstd (e.g., 'sudo apt install zstd' or 'sudo dnf install zstd') and try again." >&2
     rm -f "$TMP_FILE" "$EXTRACTED_FILE"
     exit 1
   fi
@@ -190,4 +191,15 @@ if [ -p /dev/stdin ]; then
 fi
 
 echo "Run 'edit --version' to verify."
+
+# After install, check for glibc compatibility if possible
+if command -v "$INSTALL_DIR/edit" >/dev/null 2>&1; then
+  GLIBC_ERR_MSG=$("$INSTALL_DIR/edit" --version 2>&1 | grep 'GLIBC_' || true)
+  if [ -n "$GLIBC_ERR_MSG" ]; then
+    echo "\nERROR: The Microsoft 'edit' binary requires a newer version of glibc than is available on your system." >&2
+    echo "You may need to upgrade your Linux distribution to use this binary." >&2
+    echo "Details:" >&2
+    echo "$GLIBC_ERR_MSG" >&2
+  fi
+fi
 

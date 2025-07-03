@@ -60,8 +60,13 @@ edit --version
 - `awk`
 - `tar`
 - `zstd` or `unzstd` (for .tar.zst archives)
+  - Install with: `sudo apt install zstd` (Debian/Ubuntu) or `sudo dnf install zstd` (Fedora/RHEL)
 - `unxz` (for .xz archives)
 - Standard POSIX `sh` (no bashisms required)
+- **glibc 2.34+** (or whatever version the Microsoft binary requires)
+
+> **Note:**
+> The Microsoft `edit` binary may require a recent version of glibc (e.g., 2.34+). If you see errors about missing GLIBC versions when running `edit`, you may need to upgrade your Linux distribution to a newer release that includes a compatible glibc version.
 
 ## Notes
 - The script is designed for x86_64 and aarch64 Linux systems.
