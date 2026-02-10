@@ -23,7 +23,7 @@ esac
 
 # Get latest release info from GitHub API
 RELEASE_JSON=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
-LATEST_TAG=$(echo "$RELEASE_JSON" | grep -Po '"tag_name": "\K.*?(?=")')
+LATEST_TAG=$(echo "$RELEASE_JSON" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n 1)
 
 if [ -z "$LATEST_TAG" ]; then
   echo "Failed to fetch the latest release version."
@@ -73,7 +73,7 @@ echo "Downloading $ASSET_NAME from $ASSET_URL..."
 
 # Check if edit is already installed and up-to-date
 if command -v "$INSTALL_DIR/edit" >/dev/null 2>&1; then
-  INSTALLED_VERSION=`"$INSTALL_DIR/edit" --version 2>/dev/null | grep -Eo '[0-9]+(\.[0-9]+)*'`
+  INSTALLED_VERSION=`"$INSTALL_DIR/edit" --version 2>/dev/null | sed -n 's/[^0-9]*\([0-9][0-9.]*\).*/\1/p' | head -n 1`
   LATEST_VERSION=`echo "$LATEST_TAG" | sed 's/^v//'`
   if [ "$INSTALLED_VERSION" = "$LATEST_VERSION" ]; then
     echo "edit $INSTALLED_VERSION is already installed and up-to-date."
@@ -108,7 +108,10 @@ EXTRACTED_FILE=`mktemp`
 if [ "$ASSET_NAME" != "" ] && echo "$ASSET_NAME" | grep -q "tar.zst$"; then
   # .tar.zst: decompress and extract the binary file from the archive
   if command -v unzstd >/dev/null 2>&1; then
-    BIN_PATH=$(tar --use-compress-program=unzstd -tf "$TMP_FILE" | grep -E '(^|/)edit($|[^/]+$)' | head -n1)
+    BIN_PATH=$(tar --use-compress-program=unzstd -tf "$TMP_FILE" | grep '/edit$' | head -n1)
+    if [ -z "$BIN_PATH" ]; then
+      BIN_PATH=$(tar --use-compress-program=unzstd -tf "$TMP_FILE" | grep '^edit$' | head -n1)
+    fi
     if [ -n "$BIN_PATH" ]; then
       tar --use-compress-program=unzstd -xOf "$TMP_FILE" "$BIN_PATH" > "$EXTRACTED_FILE"
     else
@@ -117,7 +120,10 @@ if [ "$ASSET_NAME" != "" ] && echo "$ASSET_NAME" | grep -q "tar.zst$"; then
       exit 1
     fi
   elif command -v zstd >/dev/null 2>&1; then
-    BIN_PATH=$(zstd -d < "$TMP_FILE" | tar -tf - | grep -E '(^|/)edit($|[^/]+$)' | head -n1)
+    BIN_PATH=$(zstd -d < "$TMP_FILE" | tar -tf - | grep '/edit$' | head -n1)
+    if [ -z "$BIN_PATH" ]; then
+      BIN_PATH=$(zstd -d < "$TMP_FILE" | tar -tf - | grep '^edit$' | head -n1)
+    fi
     if [ -n "$BIN_PATH" ]; then
       zstd -d < "$TMP_FILE" | tar -xOf - "$BIN_PATH" > "$EXTRACTED_FILE"
     else

@@ -17,7 +17,7 @@ This project provides a simple shell script to install the latest release of Mic
 - **Optional:** Can set Microsoft `edit` as your default `edit` command (overriding `/usr/bin/edit`) with a flag
 - Provides clear instructions to undo this change
 
-## Usage
+## Installation
 
 ### 1. Install with a single command:
 ```sh
